@@ -1,8 +1,27 @@
-- name: JVM Restart Playbook
-  hosts: all
+- name: WebSphere JVM Restart
+  hosts: websphere_servers
   become: yes
   tasks:
-    - name: Restart JVM service
-      service:
-        name: jvm-service
-        state: restarted
+    - name: Stop JVM
+      shell: >
+        /opt/IBM/WebSphere/AppServer/profiles/AppSrv01/bin/stopServer.sh server1
+        -username {{ lookup('env', 'WAS_USERNAME') }}
+        -password {{ lookup('env', 'WAS_PASSWORD') }}
+      register: stop_output
+      ignore_errors: yes
+
+    - name: Wait before starting
+      pause:
+        seconds: 15
+
+    - name: Start JVM
+      shell: "/opt/IBM/WebSphere/AppServer/profiles/AppSrv01/bin/startServer.sh server1"
+      register: start_output
+
+    - name: Show stop output
+      debug:
+        var: stop_output.stdout_lines
+
+    - name: Show start output
+      debug:
+        var: start_output.stdout_lines
