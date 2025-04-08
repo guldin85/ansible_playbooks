@@ -1,45 +1,51 @@
-- name: WebSphere JVM Restart
+- name: Restart Multiple WebSphere JVMs
   hosts: websphere_Testservers
   become: yes
+  vars:
+    was_profile_path: /Was/IBM/WebSphere/AppServer/profiles/AppSrv01
+    was_username: "{{ lookup('env', 'WAS9_USERNAME') }}"
+    was_password: "{{ lookup('env', 'WAS9_PASSWORD') }}"
+    jvm_list:
+      - diger
+      - emk4a
+      - emk4b
+      - guv
+      - guv_jpa2.0_1
+      - test83_iso
+
   tasks:
 
-    - name: Stop JVM (with timeout and no host key check)
+    - name: Stop JVMs
       shell: >
-        timeout 60 /Was/IBM/WebSphere/AppServer/profiles/AppSrv01/bin/stopServer.sh server1
-        -username {{ lookup('env', 'WAS9_USERNAME') }}
-        -password {{ lookup('env', 'WAS9_PASSWORD') }}
-      args:
-        executable: /bin/bash
-        warn: false
-      register: stop_output
-      ignore_errors: yes
-      environment:
-        ANSIBLE_HOST_KEY_CHECKING: "False"
-
-    - name: Show stop output
-      debug:
-        var: stop_output.stdout_lines
-
-    - name: Check if JVM still running
-      shell: ps -ef | grep -i server1 | grep -v grep
-      register: jvm_check
-      failed_when: jvm_check.rc == 0
+        timeout 60 {{ was_profile_path }}/bin/stopServer.sh {{ item }}
+        -username {{ was_username }} -password {{ was_password }}
+      loop: "{{ jvm_list }}"
+      register: stop_results
       ignore_errors: yes
 
-    - name: Kill JVM (force, if still running)
-      shell: pkill -f 'server1'
-      when: jvm_check.rc == 0
-      register: kill_output
-      ignore_errors: yes
+    - name: Kontrol: JVM'ler durdu mu?
+      shell: ps -ef | grep -i {{ item }} | grep -v grep
+      loop: "{{ jvm_list }}"
+      register: stop_check
+      changed_when: false
+      failed_when: stop_check.results[loop.index0].rc == 0
+      ignore_errors: false
 
-    - name: Wait before starting
+    - name: Bekleniyor (her JVM sonrası 15 saniye)
       pause:
         seconds: 15
+      loop: "{{ jvm_list }}"
 
-    - name: Start JVM
-      shell: "/Was/IBM/WebSphere/AppServer/profiles/AppSrv01/bin/startServer.sh server1"
-      register: start_output
+    - name: Start JVMs
+      shell: "{{ was_profile_path }}/bin/startServer.sh {{ item }}"
+      loop: "{{ jvm_list }}"
+      register: start_results
+      ignore_errors: yes
 
-    - name: Show start output
-      debug:
-        var: start_output.stdout_lines
+    - name: Kontrol: JVM'ler başladı mı?
+      shell: ps -ef | grep -i {{ item }} | grep -v grep
+      loop: "{{ jvm_list }}"
+      register: start_check
+      changed_when: false
+      failed_when: start_check.results[loop.index0].rc != 0
+      ignore_errors: false
