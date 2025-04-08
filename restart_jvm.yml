@@ -1,0 +1,8 @@
+- name: JVM Restart Playbook
+  hosts: all
+  become: yes
+  tasks:
+    - name: Restart JVM service
+      service:
+        name: jvm-service
+        state: restarted
