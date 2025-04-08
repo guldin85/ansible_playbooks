@@ -23,7 +23,7 @@
       register: stop_results
       ignore_errors: yes
 
-    - name: Kontrol: JVM'ler durdu mu?
+    - name: Kontrol JVM'ler durdu mu?
       shell: ps -ef | grep -i {{ item }} | grep -v grep
       loop: "{{ jvm_list }}"
       register: stop_check
@@ -42,7 +42,7 @@
       register: start_results
       ignore_errors: yes
 
-    - name: Kontrol: JVM'ler başladı mı?
+    - name: Kontrol JVM'ler başladı mı?
       shell: ps -ef | grep -i {{ item }} | grep -v grep
       loop: "{{ jvm_list }}"
       register: start_check
