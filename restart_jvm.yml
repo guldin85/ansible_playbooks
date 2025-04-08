@@ -1,13 +1,35 @@
 - name: WebSphere JVM Restart
-  hosts: websphere_Testservers
+  hosts: websphere_servers
   become: yes
   tasks:
-    - name: Stop JVM
+
+    - name: Stop JVM (with timeout and no host key check)
       shell: >
-        /Was/IBM/WebSphere/AppServer/profiles/AppSrv01/bin/stopServer.sh server1
+        timeout 60 /Was/IBM/WebSphere/AppServer/profiles/AppSrv01/bin/stopServer.sh server1
         -username {{ lookup('env', 'WAS9_USERNAME') }}
         -password {{ lookup('env', 'WAS9_PASSWORD') }}
+      args:
+        executable: /bin/bash
+        warn: false
       register: stop_output
+      ignore_errors: yes
+      environment:
+        ANSIBLE_HOST_KEY_CHECKING: "False"
+
+    - name: Show stop output
+      debug:
+        var: stop_output.stdout_lines
+
+    - name: Check if JVM still running
+      shell: ps -ef | grep -i server1 | grep -v grep
+      register: jvm_check
+      failed_when: jvm_check.rc == 0
+      ignore_errors: yes
+
+    - name: Kill JVM (force, if still running)
+      shell: pkill -f 'server1'
+      when: jvm_check.rc == 0
+      register: kill_output
       ignore_errors: yes
 
     - name: Wait before starting
@@ -17,10 +39,6 @@
     - name: Start JVM
       shell: "/Was/IBM/WebSphere/AppServer/profiles/AppSrv01/bin/startServer.sh server1"
       register: start_output
-
-    - name: Show stop output
-      debug:
-        var: stop_output.stdout_lines
 
     - name: Show start output
       debug:
