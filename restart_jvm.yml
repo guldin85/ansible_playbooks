@@ -4,9 +4,9 @@
   tasks:
     - name: Stop JVM
       shell: >
-        /opt/IBM/WebSphere/AppServer/profiles/AppSrv01/bin/stopServer.sh server1
-        -username {{ lookup('env', 'WAS_USERNAME') }}
-        -password {{ lookup('env', 'WAS_PASSWORD') }}
+        /Was/IBM/WebSphere/AppServer/profiles/AppSrv01/bin/stopServer.sh server1
+        -username {{ lookup('env', 'WAS9_USERNAME') }}
+        -password {{ lookup('env', 'WAS9_PASSWORD') }}
       register: stop_output
       ignore_errors: yes
 
@@ -15,7 +15,7 @@
         seconds: 15
 
     - name: Start JVM
-      shell: "/opt/IBM/WebSphere/AppServer/profiles/AppSrv01/bin/startServer.sh server1"
+      shell: "/Was/IBM/WebSphere/AppServer/profiles/AppSrv01/bin/startServer.sh server1"
       register: start_output
 
     - name: Show stop output
