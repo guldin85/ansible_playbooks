@@ -1,5 +1,5 @@
 - name: WebSphere JVM Restart
-  hosts: websphere_servers
+  hosts: websphere_Testservers
   become: yes
   tasks:
 
