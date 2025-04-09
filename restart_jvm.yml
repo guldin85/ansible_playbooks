@@ -1,3 +1,4 @@
+
 - name: Restart Multiple WebSphere JVMs
   hosts: websphere_Testservers
   become: yes
@@ -18,7 +19,7 @@
     - name: Stop JVMs
       shell: >
         timeout 60 {{ was_profile_path }}/bin/stopServer.sh {{ item }}
-        -username {{ was_username }} -password {{ was_password }}
+        -username {{ was9_username }} -password {{ was9_password }}
       loop: "{{ jvm_list }}"
       register: stop_results
       ignore_errors: yes
@@ -31,7 +32,7 @@
       failed_when: stop_check.results[loop.index0].rc == 0
       ignore_errors: false
 
-    - name: Bekleniyor (her JVM sonrası 15 saniye)
+    - name: Bekleniyor (her JVM sonrasi 15 saniye)
       pause:
         seconds: 15
       loop: "{{ jvm_list }}"
@@ -42,7 +43,7 @@
       register: start_results
       ignore_errors: yes
 
-    - name: Kontrol JVM'ler başladı mı?
+    - name: Kontrol JVM'ler başladi mi?
       shell: ps -ef | grep -i {{ item }} | grep -v grep
       loop: "{{ jvm_list }}"
       register: start_check
