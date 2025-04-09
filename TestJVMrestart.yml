@@ -5,14 +5,14 @@
     jvm_list:
       - name: server1
         profile: AppSrv01
-      - name: server2
+      - name: test83_iso
         profile: AppSrv01
-      - name: server3
-        profile: AppSrv02
-      - name: server4
-        profile: AppSrv03
-      - name: server5
-        profile: AppSrv04
+      - name: diger
+        profile: AppSrv01
+      - name: emk4a
+        profile: AppSrv01
+      - name: emk4b
+        profile: AppSrv01
   tasks:
     - name: Stop all JVMs (with timeout and no host key check)
       shell: >
