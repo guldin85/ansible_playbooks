@@ -1,0 +1,97 @@
+- name: WebSphere Multiple JVM Restart
+  hosts: websphere_Testservers
+  become: yes
+  vars:
+    jvm_list:
+      - name: server1
+        profile: AppSrv01
+      - name: server2
+        profile: AppSrv01
+      - name: server3
+        profile: AppSrv02
+      - name: server4
+        profile: AppSrv03
+      - name: server5
+        profile: AppSrv04
+  tasks:
+    - name: Stop all JVMs (with timeout and no host key check)
+      shell: >
+        timeout 60 /Was/IBM/WebSphere/AppServer/profiles/{{ item.profile }}/bin/stopServer.sh {{ item.name }}
+        -username {{ lookup('env', 'WAS9_USERNAME') }}
+        -password {{ lookup('env', 'WAS9_PASSWORD') }}
+      args:
+        executable: /bin/bash
+        warn: false
+      register: stop_output
+      ignore_errors: yes
+      environment:
+        ANSIBLE_HOST_KEY_CHECKING: "False"
+      loop: "{{ jvm_list }}"
+      loop_control:
+        loop_var: item
+        label: "Stopping {{ item.name }}"
+
+    - name: Show stop outputs
+      debug:
+        msg: "Stop output for {{ item.item.name }}: {{ item.stdout_lines }}"
+      loop: "{{ stop_output.results }}"
+      when: item.stdout is defined
+      loop_control:
+        label: "Output for {{ item.item.name }}"
+
+    - name: Check if JVMs are still running
+      shell: ps -ef | grep -i '{{ item.name }}' | grep -v grep
+      register: jvm_checks
+      failed_when: jvm_checks.rc == 0
+      ignore_errors: yes
+      loop: "{{ jvm_list }}"
+      loop_control:
+        loop_var: item
+        label: "Checking {{ item.name }}"
+
+    - name: Kill JVMs (force, if still running)
+      shell: pkill -f '{{ item.item.name }}'
+      when: item.rc == 0
+      register: kill_outputs
+      ignore_errors: yes
+      loop: "{{ jvm_checks.results }}"
+      loop_control:
+        loop_var: item
+        label: "Killing {{ item.item.name }}"
+
+    - name: Wait before starting all JVMs
+      pause:
+        seconds: 15
+
+    - name: Start all JVMs
+      shell: >
+        /Was/IBM/WebSphere/AppServer/profiles/{{ item.profile }}/bin/startServer.sh {{ item.name }}
+      register: start_outputs
+      loop: "{{ jvm_list }}"
+      loop_control:
+        loop_var: item
+        label: "Starting {{ item.name }}"
+
+    - name: Show start outputs
+      debug:
+        msg: "Start output for {{ item.item.name }}: {{ item.stdout_lines }}"
+      loop: "{{ start_outputs.results }}"
+      when: item.stdout is defined
+      loop_control:
+        label: "Output for {{ item.item.name }}"
+
+    - name: Verify JVMs are running
+      shell: >
+        /Was/IBM/WebSphere/AppServer/profiles/{{ item.profile }}/bin/serverStatus.sh {{ item.name }}
+        -username {{ lookup('env', 'WAS9_USERNAME') }}
+        -password {{ lookup('env', 'WAS9_PASSWORD') }}
+      register: status_checks
+      loop: "{{ jvm_list }}"
+      loop_control:
+        loop_var: item
+        label: "Checking status of {{ item.name }}"
+
+    - name: Display JVM statuses
+      debug:
+        msg: "JVM {{ item.item.name }} status: {{ item.stdout_lines | default('NOT RUNNING') }}"
+      loop: "{{ status_checks.results }}"
