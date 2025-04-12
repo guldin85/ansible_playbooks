@@ -61,7 +61,7 @@
 
     - name: Wait before starting all JVMs
       pause:
-        seconds: 15
+        seconds: 300
 
     - name: Start all JVMs
       shell: >

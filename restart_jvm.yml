@@ -18,7 +18,7 @@
 
     - name: Stop JVMs
       shell: >
-        timeout 60 {{ was_profile_path }}/bin/stopServer.sh {{ item }}
+        timeout 120 {{ was_profile_path }}/bin/stopServer.sh {{ item }}
         -username {{ was9_username }} -password {{ was9_password }}
       loop: "{{ jvm_list }}"
       register: stop_results
@@ -34,7 +34,7 @@
 
     - name: Bekleniyor (her JVM sonrasi 15 saniye)
       pause:
-        seconds: 15
+        seconds: 300
       loop: "{{ jvm_list }}"
 
     - name: Start JVMs
