@@ -1,0 +1,8 @@
+namespace: sgk
+name: websphere_control
+version: "1.0.0"
+readme: README.md
+authors:
+  - gulay
+description: WebSphere JVM kontrolü için Ansible Collection
+repository: https://github.com/sgk/websphere_control

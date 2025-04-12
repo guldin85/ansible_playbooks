@@ -1,0 +1,15 @@
+---
+- name: WebSphere JVM yönetimi
+  hosts: all
+  gather_facts: false
+  vars:
+    jvms: ["server1", "diger", "emk4a", "emk4b", "guv"]
+  tasks:
+    - name: JVM'leri sirayla yönet
+      include_role:
+        name: sgk.websphere_control.jvm_control
+      loop: "{{ jvms }}"
+      loop_control:
+        loop_var: jvm_name
+      vars:
+        jvm_action: "{{ action | default('stop') }}"

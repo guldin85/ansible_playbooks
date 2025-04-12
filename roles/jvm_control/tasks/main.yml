@@ -1,0 +1,10 @@
+---
+- name: Stop JVM
+  shell: >
+    /Was/IBM/WebSphere/AppServer/profiles/AppSrv01/bin/stopServer.sh {{ jvm_name }}
+  when: jvm_action == "stop"
+
+- name: Start JVM
+  shell: >
+    /opt/IBM/WebSphere/AppServer/profiles/AppSrv01/bin/startServer.sh {{ jvm_name }}
+  when: jvm_action == "start"
