@@ -19,7 +19,7 @@
     - name: Stop JVMs
       shell: >
         timeout 120 {{ was_profile_path }}/bin/stopServer.sh {{ item }}
-        -username {{ was9_username }} -password {{ was9_password }}
+        -username {{ 'WAS9_USERNAME' }} -password {{ 'WAS9_PASSWORD' }}
       loop: "{{ jvm_list }}"
       register: stop_results
       ignore_errors: yes
